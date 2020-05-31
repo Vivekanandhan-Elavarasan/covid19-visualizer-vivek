@@ -1,0 +1,40 @@
+<p>Table is just a mapping of objects to table rows with <code>ngFor</code></p>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-4">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th>District Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let users of userList; index as i">
+                        <th scope="row">{{ i + 1 }}</th>
+                        <td>
+                            {{ users }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-lg-4">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Confirmed Cases</th>
+                        <th scope="col">Recovered Cases</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let district of districtArray;">
+                        <td>{{ district.confirmed}}</td>
+                        <td>{{ district.recovered}}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>

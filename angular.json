@@ -24,6 +24,7 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "src/styles.css"
             ],
             "scripts": []
@@ -119,6 +120,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "covid19-visualizer-vivek"
+    }
+  },
+  "defaultProject": "covid19-visualizer-vivek",
+  "cli": {
+    "analytics": "49f1f935-c595-4577-b131-e512c482d4fa"
+  }
 }
