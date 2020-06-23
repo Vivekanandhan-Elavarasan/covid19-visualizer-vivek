@@ -1,75 +1,101 @@
-import { Component, OnInit } from '@angular/core';
-import { ChartOptions, ChartType, ChartDataSets } from 'chart.js';
-import * as pluginDataLabels from 'chartjs-plugin-datalabels';
-import { Label } from 'ng2-charts';
-import { CoviddataService } from '../coviddata.service'
+import { Component, OnInit, Input } from '@angular/core';
+import { DataServerService } from '../data-server.service';
 
 @Component({
   selector: 'app-bar-chart',
   templateUrl: './bar-chart.component.html',
-  styleUrls: ['./bar-chart.component.scss'],
+  styleUrls: ['./bar-chart.component.css'],
 })
 export class BarChartComponent implements OnInit {
-barChart;
-arraysample=[943];
-arraysample1=[2368];
-  constructor(private covidDataService: CoviddataService) {
-    this.covidDataService.retiveBarChartData().subscribe((data) => {
-      this.barChart = data;
-      console.log("barchart",this.barChart.states_daily);
-      for(let i=0;i<this.barChart.states_daily.length;i++){
-        this.arraysample.push(this.barChart.states_daily[i].tn);
-        this.arraysample1.push(this.barChart.states_daily[i].mh);
-      }
-      console.log("tamilNadu",this.arraysample);
+  @Input('set_id') id;
+  ChartData = [{ data: [], label: '' }];
+  ChartLabels = [];
 
-    })
+  ChartLegend = true;
+  ChartType = 'bar';
+  ChartPlugins = [];
+  ChartColors = [];
+  constructor(private service: DataServerService) {}
+
+  ngOnInit(): void {}
+
+  changeChart() {
+    let type = (<HTMLInputElement>document.getElementById(this.id)).value;
+    this.ChartType = type;
   }
-  public barChartOptions: ChartOptions = {
-    responsive: true,
-    // We use these empty structures as placeholders for dynamic theming.
-    scales: { xAxes: [{}], yAxes: [{id: 'y-axis-10',position: 'left',}] },
-    plugins: {
-      datalabels: {
-        anchor: 'end',
-        align: 'end',
-      }
+
+  updateChart(data, scope) {
+    let ChartColors = ['#0e9aa7', '#e84a5f', '#a8df65', '#888888'];
+    if (scope == 'country') {
+      let data_new = data.filter(
+        (data_) => data_['statecode'] != 'TT' && data_['statecode'] != 'UN'
+      );
+      this.ChartData = ['confirmed', 'active', 'recovered', 'deaths'].map(
+        (type, i) => {
+          return {
+            data: data_new.reduce((states, state) => {
+              states.push(state[type]);
+              return states;
+            }, []),
+            label: type,
+            backgroundColor: ChartColors[i],
+          };
+        }
+      );
+      this.ChartLabels = data_new.map((state) => {
+        return state['statecode'];
+      });
+    } else if (scope == 'countryTotal') {
+      let data_new = data.filter((data_) => data_['statecode'] == 'TT');
+      this.ChartData = ['confirmed', 'active', 'recovered', 'deaths'].map(
+        (type, i) => {
+          return {
+            data: data_new.reduce((states, state) => {
+              states.push(state[type]);
+              return states;
+            }, []),
+            label: type,
+            backgroundColor: ChartColors[i],
+          };
+        }
+      );
+      this.ChartLabels = data_new.map((state) => {
+        return state['statecode'];
+      });
+    } else if (scope == 'countryTrend') {
+      this.ChartData = [
+        'dailyconfirmed',
+        'dailyrecovered',
+        'dailydeceased',
+      ].map((type, i) => {
+        return {
+          data: data.reduce((days, day) => {
+            days.push(day[type]);
+            return days;
+          }, []),
+          label: type,
+          backgroundColor: ChartColors[i + 1],
+        };
+      });
+      this.ChartLabels = data.map((day) => {
+        return day['date'].slice(0, 6);
+      });
+    } else if (scope == 'state') {
+      this.ChartData = ['confirmed', 'active', 'recovered', 'deceased'].map(
+        (type, i) => {
+          return {
+            data: data.reduce((dists, dist) => {
+              dists.push(dist[type]);
+              return dists;
+            }, []),
+            label: type,
+            backgroundColor: ChartColors[i],
+          };
+        }
+      );
+      this.ChartLabels = data.map((dist) => {
+        return dist['district'];
+      });
     }
-  };
-  public barChartLabels: Label[] = ['today','14/03', '15/03', '16/03', '17/03', '18/03', '19/03', '20/03'];
-  public barChartType: ChartType = 'bar';
-  public barChartLegend = true;
-  public barChartPlugins = [pluginDataLabels];
-
-  public barChartData: ChartDataSets[] = [
-    { data: this.arraysample, label: 'TamilNadu' },
-    { data: this.arraysample1, label: 'Maharasatra' }
-  ];
-
- // constructor() { }
-
-  ngOnInit() {
-  }
-
-  // events
-  public chartClicked({ event, active }: { event: MouseEvent, active: {}[] }): void {
-    console.log(event, active);
-  }
-
-  public chartHovered({ event, active }: { event: MouseEvent, active: {}[] }): void {
-    console.log(event, active);
-  }
-
-  public randomize(): void {
-    // Only Change 3 values
-    const data = [
-      Math.round(Math.random() * 100),
-      59,
-      80,
-      (Math.random() * 100),
-      56,
-      (Math.random() * 100),
-      40];
-    this.barChartData[0].data = data;
   }
 }

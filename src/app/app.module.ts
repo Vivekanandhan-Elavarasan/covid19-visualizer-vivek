@@ -4,42 +4,49 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { HttpClientModule } from "@angular/common/http";
-import { ToasterComponent } from './toaster/toaster.component';
-import { LineChartComponent } from './line-chart/line-chart.component'
+
+import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
+
+import { HashLocationStrategy, LocationStrategy } from '@angular/common';
+
 import { ChartsModule } from 'ng2-charts';
+
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { ToastrModule } from 'ngx-toastr';
+
 import { BarChartComponent } from './bar-chart/bar-chart.component';
-import { PieChartComponent } from './pie-chart/pie-chart.component';
-import { FirstpageComponent } from './firstpage/firstpage.component';
-import { TableComponent } from './table/table.component';
+
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HomeComponent } from './home/home.component';
+import { MainDisplayComponent } from './main-display/main-display.component';
+import { CountryDataComponent } from './country-data/country-data.component';
+import { StateDataComponent } from './state-data/state-data.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ToasterComponent,
-    LineChartComponent,
     BarChartComponent,
-    PieChartComponent,
-    FirstpageComponent,
-    TableComponent,
+
     LoginComponent,
     RegisterComponent,
-    HomeComponent
+    MainDisplayComponent,
+    CountryDataComponent,
+    StateDataComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     NgbModule,
     HttpClientModule,
-    ChartsModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    ChartsModule,
+    BrowserAnimationsModule,
+    ToastrModule.forRoot(),
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [{ provide: LocationStrategy, useClass: HashLocationStrategy }],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

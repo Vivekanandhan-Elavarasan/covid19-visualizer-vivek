@@ -1,69 +1,83 @@
-﻿import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { first } from 'rxjs/operators';
-import { AlertService} from '../alert.service';
-import { AuthenticationService } from '../authentication.service';
-import {UserService} from '../user.service';
-
+import { Router } from '@angular/router';
+import { DataServerService } from '../data-server.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.component.html',
-  styleUrls: ['./register.component.css']
+  styleUrls: ['./register.component.css'],
 })
 export class RegisterComponent implements OnInit {
-  registerForm: FormGroup;
-  loading = false;
-  submitted = false;
-
+  requesting;
+  profileForm: FormGroup;
   constructor(
-      private formBuilder: FormBuilder,
-      private router: Router,
-      private authenticationService: AuthenticationService,
-      private userService: UserService,
-      private alertService: AlertService
+    private fb: FormBuilder,
+    private _router: Router,
+    private service: DataServerService,
+    private toastr: ToastrService
   ) {
-      // redirect to home if already logged in
-      if (this.authenticationService.currentUserValue) {
-          this.router.navigate(['/']);
-      }
+    this.requesting = false;
+    this.profileForm = this.fb.group({
+      fname: this.fb.control('', [
+        Validators.required,
+        Validators.pattern('[a-zA-Z]{2,}'),
+      ]),
+      lname: this.fb.control('', [
+        Validators.required,
+        Validators.pattern('[a-zA-Z]{2,}'),
+      ]),
+      email: this.fb.control('', [Validators.required, Validators.email]),
+
+      pass: this.fb.control('', [Validators.required, Validators.minLength(4)]),
+      rpass: this.fb.control('', Validators.required),
+    });
   }
 
-  ngOnInit() {
-      this.registerForm = this.formBuilder.group({
-          firstName: ['', Validators.required],
-          lastName: ['', Validators.required],
-          username: ['', Validators.required],
-          password: ['', [Validators.required, Validators.minLength(6)]]
-      });
+  ngOnInit(): void {}
+
+  updatePatt() {
+    this.profileForm
+      .get('rpass')
+      .setValidators([
+        Validators.required,
+        Validators.pattern(this.profileForm.get('pass').value),
+      ]);
+    this.profileForm
+      .get('rpass')
+      .updateValueAndValidity({ onlySelf: false, emitEvent: true });
   }
 
-  // convenience getter for easy access to form fields
-  get f() { return this.registerForm.controls; }
-
-  onSubmit() {
-      this.submitted = true;
-
-      // reset alerts on submit
-      this.alertService.clear();
-
-      // stop here if form is invalid
-      if (this.registerForm.invalid) {
-          return;
-      }
-
-      this.loading = true;
-      this.userService.register(this.registerForm.value)
-          .pipe(first())
-          .subscribe(
-              data => {
-                  this.alertService.success('Registration successful', true);
-                  this.router.navigate(['/login']);
-              },
-              error => {
-                  this.alertService.error(error);
-                  this.loading = false;
-              });
+  register() {
+    this.requesting = true;
+    console.log(this.profileForm.value);
+    let loginUrl = 'https://zen-user-api.herokuapp.com/users/register';
+    this.service
+      .requestServer(loginUrl, this.mapVals(this.profileForm.value))
+      .subscribe(
+        (responce) => {
+          console.log(responce);
+          this._router.navigate(['/login']);
+          this.toastr.success(responce['message']);
+        },
+        (error) => {
+          this.requesting = false;
+          if (!error['error']['message']) {
+            this.toastr.error('Network Error!');
+            return;
+          }
+          console.log(error['error']['message']);
+          this.toastr.error(error['error']['message']);
+        }
+      );
+  }
+  mapVals(obj) {
+    return {
+      firstName: obj['fname'],
+      lastName: obj['lname'],
+      email: obj['email'],
+      password: obj['pass'],
+    };
   }
 }

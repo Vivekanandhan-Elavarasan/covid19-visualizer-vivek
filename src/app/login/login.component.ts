@@ -1,64 +1,71 @@
-﻿﻿import { Component, OnInit } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { first } from 'rxjs/operators';
-import { AlertService} from '../alert.service';
-import { AuthenticationService } from '../authentication.service';
+import { Router } from '@angular/router';
+import { DataServerService } from '../data-server.service';
+import { ToastrService } from 'ngx-toastr';
 
-@Component({ templateUrl: 'login.component.html' })
+@Component({
+  selector: 'app-login',
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css'],
+})
 export class LoginComponent implements OnInit {
-    loginForm: FormGroup;
-    loading = false;
-    submitted = false;
-    returnUrl: string;
+  requesting;
 
-    constructor(
-        private formBuilder: FormBuilder,
-        private route: ActivatedRoute,
-        private router: Router,
-        private authenticationService: AuthenticationService,
-        private alertService: AlertService
-    ) {
-        // redirect to home if already logged in
-        if (this.authenticationService.currentUserValue) {
-            this.router.navigate(['/']);
-        }
+  profileForm: FormGroup;
+  constructor(
+    private fb: FormBuilder,
+    private _router: Router,
+    private service: DataServerService,
+    private toastr: ToastrService
+  ) {
+    this.requesting = false;
+    //verifylogin
+    if (localStorage.getItem('covid_app_token')) {
+      this._router.navigate(['/home']);
+      this.toastr.success('Logged In!');
     }
+    this.profileForm = this.fb.group({
+      email: this.fb.control('', [Validators.required, Validators.email]),
 
-    ngOnInit() {
-        this.loginForm = this.formBuilder.group({
-            username: ['', Validators.required],
-            password: ['', Validators.required]
-        });
+      pass: this.fb.control('', [Validators.required]),
+    });
+  }
 
-        // get return url from route parameters or default to '/'
-        this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
-    }
-
-    // convenience getter for easy access to form fields
-    get f() { return this.loginForm.controls; }
-
-    onSubmit() {
-        this.submitted = true;
-
-        // reset alerts on submit
-        this.alertService.clear();
-
-        // stop here if form is invalid
-        if (this.loginForm.invalid) {
+  ngOnInit(): void {}
+  login() {
+    this.requesting = true;
+    console.log(this.profileForm.value);
+    let loginUrl = 'https://zen-user-api.herokuapp.com/users/authenticate';
+    this.service
+      .requestServer(loginUrl, this.mapVals(this.profileForm.value))
+      .subscribe(
+        (responce) => {
+          console.log(responce);
+          localStorage.setItem('covid_app_token', responce['token']);
+          this._router.navigate(['/home']);
+          this.toastr.success('Logged In!');
+        },
+        (error) => {
+          this.requesting = false;
+          if (!error['error']['message']) {
+            this.toastr.error('Network Error!');
             return;
+          }
+          console.log(error['error']['message']);
+          this.toastr.error(error['error']['message']);
         }
-
-        this.loading = true;
-        this.authenticationService.login(this.f.username.value, this.f.password.value)
-            .pipe(first())
-            .subscribe(
-                data => {
-                    this.router.navigate([this.returnUrl]);
-                },
-                error => {
-                    this.alertService.error(error);
-                    this.loading = false;
-                });
-    }
+      );
+  }
+  guestLogin() {
+    localStorage.setItem('covid_app_token', 'guestToken');
+    this._router.navigate(['/home']);
+    this.toastr.success('Logged In!');
+  }
+  mapVals(obj) {
+    return {
+      email: obj['email'],
+      password: obj['pass'],
+    };
+  }
 }

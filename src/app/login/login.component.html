@@ -1,24 +1,87 @@
-﻿<h2>Login</h2>
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-    <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" formControlName="username" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.username.errors }" />
-        <div *ngIf="submitted && f.username.errors" class="invalid-feedback">
-            <div *ngIf="f.username.errors.required">Username is required</div>
+<div class="justify-content-center">
+  <h1>COVID-19 DATA</h1>
+</div>
+<div class="row  pt-3">
+    <div class="col-md-8 col-xl-5">
+      <form [formGroup]="profileForm" (ngSubmit)="login()">
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            aria-describedby="emailHelp"
+            formControlName="email"
+            [ngClass]="{
+              valid: profileForm.get('email').valid,
+              invalid:
+                profileForm.get('email').invalid && profileForm.get('email').dirty
+            }"
+          />
+          <span
+            class="invalidTxt"
+            *ngIf="
+              profileForm.get('email').invalid && profileForm.get('email').dirty
+            "
+            >Enter valid email</span
+          >
         </div>
-    </div>
-    <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" formControlName="password" class="form-control" [ngClass]="{ 'is-invalid': submitted && f.password.errors }" />
-        <div *ngIf="submitted && f.password.errors" class="invalid-feedback">
-            <div *ngIf="f.password.errors.required">Password is required</div>
+        <div class="form-group">
+          <label for="pass">Password</label>
+          <input
+            type="password"
+            class="form-control"
+            id="pass"
+            formControlName="pass"
+            [ngClass]="{
+              valid: profileForm.get('pass').valid,
+              invalid:
+                profileForm.get('pass').invalid && profileForm.get('pass').dirty
+            }"
+          />
+          <span
+            class="invalidTxt"
+            *ngIf="
+              profileForm.get('pass').invalid && profileForm.get('pass').dirty
+            "
+            >Enter valid password
+          </span>
         </div>
-    </div>
-    <div class="form-group">
-        <button [disabled]="loading" class="btn btn-primary">
-            <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1"></span>
-            Login
+        <div class="text-center">
+          <div
+            *ngIf="requesting"
+            class="spinner-border text-success"
+            role="status"
+          >
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+  
+        <button
+          *ngIf="!requesting"
+          type="submit"
+          class="btn btn-success mr-4"
+          [ngClass]="{
+            'btn-success': profileForm.valid,
+            'btn-secondary': profileForm.invalid
+          }"
+          [disabled]="profileForm.invalid"
+        >
+          Login
         </button>
-        <a routerLink="/register" class="btn btn-link">Register</a>
+        /
+        <button class="btn btn-danger ml-4" type="button" (click)="guestLogin()">
+          Guest Login
+        </button>
+      </form>
     </div>
-</form>
+  </div>
+  <div class="row pt-3">
+    <div class="col">
+      <p>OR</p>
+  
+      <button type="button" class="btn btn-primary" routerLink="/register">
+        Register
+      </button>
+    </div>
+  </div>
